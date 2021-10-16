@@ -1,6 +1,6 @@
 % Stores functions to be used by students
 -module(util).
--export([readFile/1,get_all_lines/1,saveFile/2]).
+-export([readFile/1,get_all_lines/1,saveFile/2,strToAtom/1,ualToAddr/1,ualToAtom/1]).
 
 % Function in here can be called in main.erl by doing (for example):
 % util:saveFile(path/to/file.txt, "string")
@@ -23,5 +23,11 @@ get_all_lines(Device) ->
 		Line -> Line ++ get_all_lines(Device)
 	end.
 
+strToAtom(Str) ->
+	list_to_atom(lists:flatten(Str)).
 
+ualToAtom(UAL) ->
+	strToAtom(io_lib:fwrite("~w", [UAL])).
 
+ualToAddr(UAL) ->
+	{ualToAtom(UAL), UAL}.
