@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# delete old output files
+rm -rf downloads/*
+rm -rf servers/*
+
 # Compile code
 erlc main.erl util.erl dirService.erl fileService.erl
 

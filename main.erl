@@ -1,6 +1,7 @@
 -module(main).
+
 % main functions
--export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1,test/0]).
+-export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1]).
 
 % can access own ual w/ node()
 % can access own PID w/ self()
@@ -14,77 +15,75 @@
 
 % starts a directory service
 start_dir_service() ->
-	PID = spawn(dirService, dir_service_evl, []),
-	register(node(), PID),
-	io:fwrite("Registered dir service on PID: ~w as ~w~n", [PID, node()]).
+    PID = spawn(dirService, dir_service_evl, []),
+    % register(node(), PID),
+	global:register_name(node(), PID),
+    io:fwrite("Registered dir service on PID: ~w as ~w~n", [PID, node()]).
+
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
-	spawn(fileService, file_service_evl, [DirUAL]).
+    spawn(fileService, file_service_evl, [DirUAL]).
 
+download_path(FName) ->
+    {ok, CWD} = file:get_cwd(),
+    lists:flatten(
+        io_lib:fwrite("~s/downloads/~s", [CWD, FName])).
 
+request_chunks(_, [], _) ->
+    ok;
+request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
+    ChunkLocation ! {requestChunk, FName, ChunkIdx, self()},
+    request_chunks(FName, RestLocations, ChunkIdx + 1).
 
+request_chunks(FName, LocationList) ->
+    request_chunks(FName, LocationList, 1).
 
+download_chunks(_, NumChunks, ChunkList) when NumChunks == length(ChunkList) ->
+    ChunkList;
+download_chunks(FName, NumChunks, ChunkList) ->
+    receive
+        {chunkData, ChunkIndex, ChunkContents} when ChunkIndex == length(ChunkList) + 1 ->
+            download_chunks(FName, NumChunks, lists:append(ChunkList, [ChunkContents]))
+    end.
 
-% requests file information from the Directory Service (DirUAL) on File
-% then requests file parts from the locations retrieved from Dir Service
-% then combines the file and saves to downloads folder
+download_chunks(FName, NumChunks) ->
+    util:saveFile(download_path(FName),
+                  string:join(download_chunks(FName, NumChunks, []), "")).
 
-% 3. 	The client requests a particular file from the directory service.
-% 		The directory service replies with the block names and their locations.
-% 4. 	The client requests a particular block from each file server concurrently.
-% 5. 	The file servers respond with the requested blocks.
-% 6. 	The client reassembles them into the original file.
-% 		The file must be written to a folder named downloads.
-get(DirUAL, File) ->
-	pass.
-	% CODE THIS
-	
+get(DirUAL, FName) ->
+    DirUAL ! {requestFileInfo, FName, self()},
+    receive
+        {fileInfo, LocationList} ->
+            util:print_addrs(LocationList),
+            request_chunks(FName, LocationList)
+    end,
+    download_chunks(FName, length(LocationList)).
 
-	% file:list_dir(".")  % current working directory,
-	% {ok,["helloworld.erl",".cg_conf","Newfile.txt","helloworld.beam"]}
-	
-
-
-	
-
-
-
-
-
-
-% gives Directory Service (DirUAL) the name/contents of File to create
-
-% 1. 	File name and contents are sent to the directory service.
-% 		The file must be located in a folder named input.
-% 2. 	Directory server splits file into 64 character blocks and distributes it to the file servers.
-% 		The servers save their blocks to directories named after themselves.
-create(DirUAL, File) ->
-	pass.
-	% CODE THIS
-
-	% https://riptutorial.com/erlang/example/18563/reading-from-a-file
-	% file:read_file("_ .txt").
-	% {ok,<<"summer has come and passed\r\nthe innocent can never last\r\nWake me up when september ends\r\n">>}
-	
-	% http://erlang.org/doc/man/string.html#substr-3
-	% string:substr(String, Start, Length)
-	% string:len(S)
-
+create(DirUAL, FName) ->
+    {ok, CWD} = file:get_cwd(),
+    Path =
+        lists:flatten(
+            io_lib:fwrite("~s/input/~s", [CWD, FName])),
+    FContents = util:readFile(Path),
+    DirUAL ! {saveFile, FName, FContents}.
 
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
-	pass.
-	% CODE THIS
+    DirUAL ! quit.
 
-
-
-
-test() ->
-	start_dir_service(),
-	start_file_server(node()),
-	start_file_server(node()),
-	start_file_server(node()),
-	start_file_server(node()),
-	start_file_server(node()),
-	timer:sleep(1000),
-	node() ! {saveFile, "main.txt", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}.
+% test() ->
+%     start_dir_service(),
+%     start_file_server(node()),
+%     start_file_server(node()),
+%     start_file_server(node()),
+%     start_file_server(node()),
+%     start_file_server(node()),
+%     timer:sleep(1000),
+%     create(node(), "a.txt"),
+%     create(node(), "b.txt"),
+%     create(node(), "bee_short.txt"),
+%     timer:sleep(1000),
+%     get(node(), "bee_short.txt"),
+%     get(node(), "a.txt"),
+%     get(node(), "b.txt"),
+%     quit(node()).
