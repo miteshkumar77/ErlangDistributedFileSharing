@@ -1,6 +1,6 @@
 -module(main).
 % main functions
--export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1]).
+-export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1,test/0]).
 
 % can access own ual w/ node()
 % can access own PID w/ self()
@@ -14,14 +14,12 @@
 
 % starts a directory service
 start_dir_service() ->
-	global:register_name(node(), node()),
-	dirService:dir_service_evl().
-
+	PID = spawn(dirService, dir_service_evl, []),
+	register(node(), PID),
+	io:fwrite("Registered dir service on PID: ~w as ~w~n", [PID, node()]).
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
-	global:register_name(node(), node()),
-	fileService:file_service_evl(DirUAL).
-	
+	spawn(fileService, file_service_evl, [DirUAL]).
 
 
 
@@ -81,3 +79,12 @@ quit(DirUAL) ->
 
 
 
+test() ->
+	start_dir_service(),
+	start_file_server(node()),
+	start_file_server(node()),
+	start_file_server(node()),
+	start_file_server(node()),
+	start_file_server(node()),
+	timer:sleep(1000),
+	node() ! {saveFile, "main.txt", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}.

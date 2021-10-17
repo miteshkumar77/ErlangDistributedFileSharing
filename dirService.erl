@@ -1,21 +1,34 @@
 -module(dirService).
 -export([dir_service_evl/0]).
 
-print_addrs([]) ->
-    "~n";
-print_addrs([H|T]) ->
-    io_lib:fwrite("~s ~s", [atom_to_list(H), print_addrs(T)]).
+send_chunks([ChunkContents|RestChunks], Fname, Index, FileServers, ChunkMap) ->
+    NthServer = lists:nth(((Index - 1) rem length(FileServers)) + 1, FileServers),
+    ChunkName = util:get_chunk_name(Fname, Index),
+    NthServer ! {chunk, ChunkName, ChunkContents},
+    send_chunks(RestChunks, Fname, Index+1, FileServers, util:map_list_append(ChunkMap, Fname, NthServer));
+
+
+send_chunks([], _, _, _, ChunkMap) ->
+    ChunkMap.
+    
+send_chunks(Chunks, Fname, FileServers, ChunkMap) ->
+    send_chunks(Chunks, Fname, 1, FileServers, ChunkMap).
+
+
+dir_service_evl(FileServers, ChunkMap) ->
+    receive
+        {fsAddr, FsName} -> 
+            util:print_addrs(lists:append(FileServers, [FsName])),
+            dir_service_evl(lists:sort(lists:append(FileServers, [FsName])), ChunkMap);
+        {saveFile, FName, FContents} ->
+            Chunks = util:split_string_chunks(lists:flatten(FContents), 64),
+            dir_service_evl(FileServers, send_chunks(Chunks, FName, FileServers, ChunkMap));
+        _ ->
+            dir_service_evl(FileServers, ChunkMap)
+    end.
 
 dir_service_evl() ->
-    dir_service_evl([]).
-dir_service_evl(file_servers) ->
-    receive
-        {fsAddr, FsPID, FsAddr} -> 
-            register(util:ualToAtom(FsAddr), FsPID),
-            print_addrs(lists:append(file_servers, [FsAddr])),
-            dir_service_evl(lists:append(file_servers, [FsAddr]));
-        _ ->
-            dir_service_evl(file_servers)
-    end.
+    io:fwrite("Begin dir_service_evl~n"),
+    dir_service_evl([], #{}).
 
     
