@@ -15,14 +15,14 @@
 
 % starts a directory service
 start_dir_service() ->
-    PID = spawn(dirService, dir_service_evl, []),
-    % register(node(), PID),
-	global:register_name(node(), PID),
-    io:fwrite("Registered dir service on PID: ~w as ~w~n", [PID, node()]).
+    % _ = spawn(dirService, dir_service_evl, []).
+    dirService:dir_service_evl().
 
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
-    spawn(fileService, file_service_evl, [DirUAL]).
+    % _ = spawn(fileService, file_service_evl, [DirUAL]).
+    fileService:file_service_evl(DirUAL).
+
 
 download_path(FName) ->
     {ok, CWD} = file:get_cwd(),
@@ -32,7 +32,8 @@ download_path(FName) ->
 request_chunks(_, [], _) ->
     ok;
 request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
-    ChunkLocation ! {requestChunk, FName, ChunkIdx, self()},
+    _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
+    global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
     request_chunks(FName, RestLocations, ChunkIdx + 1).
 
 request_chunks(FName, LocationList) ->
@@ -51,7 +52,8 @@ download_chunks(FName, NumChunks) ->
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
 get(DirUAL, FName) ->
-    DirUAL ! {requestFileInfo, FName, self()},
+    _ = util:resolve_global_name(DirUAL, DirUAL),
+    global:send(DirUAL, {requestFileInfo, FName, self()}),
     receive
         {fileInfo, LocationList} ->
             util:print_addrs(LocationList),
@@ -60,16 +62,18 @@ get(DirUAL, FName) ->
     download_chunks(FName, length(LocationList)).
 
 create(DirUAL, FName) ->
+    _ = util:resolve_global_name(DirUAL, DirUAL),
     {ok, CWD} = file:get_cwd(),
     Path =
         lists:flatten(
             io_lib:fwrite("~s/input/~s", [CWD, FName])),
     FContents = util:readFile(Path),
-    DirUAL ! {saveFile, FName, FContents}.
+    global:send(DirUAL, {saveFile, FName, FContents}).
 
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
-    DirUAL ! quit.
+    _ = util:resolve_global_name(DirUAL, DirUAL),
+    global:send(DirUAL, quit).
 
 % test() ->
 %     start_dir_service(),
