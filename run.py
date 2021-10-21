@@ -43,6 +43,7 @@ def waitfor(procs):
         if all(proc.returncode is not None for proc in procs):
             break
         iters += 1
+
         if iters > 20:
             print("ERROR: timeout...")
             for proc in procs:
@@ -54,7 +55,6 @@ def main():
     script_name = sys.argv[1]
     Proc = subprocess.Popen(['erlc', 'main.erl', 'util.erl', 'fileService.erl', 'dirService.erl'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     waitfor([Proc])
-    print(f"script: {script_name}")
     subprocesses = []
     with open(script_name, 'r') as script:
         for l in script:

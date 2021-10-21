@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+ps aux | grep -e heart -e epmd -e beam | grep -v grep | tr -s ' ' | cut -d ' ' -f 2 | xargs kill -9
+
+rm -rf downloads/*
+rm -rf servers/*
+
+
 # Compile code
-erlc main.erl util.erl
+erlc main.erl util.erl fileService.erl dirService.erl
 
 # Run my program.
 input=$1

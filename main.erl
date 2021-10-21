@@ -32,8 +32,9 @@ download_path(FName) ->
 request_chunks(_, [], _) ->
     ok;
 request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
-    _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
-    global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
+    % _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
+    % global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
+    {ChunkLocation, ChunkLocation} ! {requestChunk, FName, ChunkIdx, self()},
     request_chunks(FName, RestLocations, ChunkIdx + 1).
 
 request_chunks(FName, LocationList) ->
@@ -52,8 +53,9 @@ download_chunks(FName, NumChunks) ->
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
 get(DirUAL, FName) ->
-    _ = util:resolve_global_name(DirUAL, DirUAL),
-    global:send(DirUAL, {requestFileInfo, FName, self()}),
+    % _ = util:resolve_global_name(DirUAL, DirUAL),
+    % global:send(DirUAL, {requestFileInfo, FName, self()}),
+    {DirUAL, DirUAL} ! {requestFileInfo, FName, self()},
     receive
         {fileInfo, LocationList} ->
             util:print_addrs(LocationList),
@@ -62,18 +64,20 @@ get(DirUAL, FName) ->
     download_chunks(FName, length(LocationList)).
 
 create(DirUAL, FName) ->
-    _ = util:resolve_global_name(DirUAL, DirUAL),
+    % _ = util:resolve_global_name(DirUAL, DirUAL),
     {ok, CWD} = file:get_cwd(),
     Path =
         lists:flatten(
             io_lib:fwrite("~s/input/~s", [CWD, FName])),
     FContents = util:readFile(Path),
-    global:send(DirUAL, {saveFile, FName, FContents}).
+    % global:send(DirUAL, {saveFile, FName, FContents}).
+    {DirUAL, DirUAL} ! {saveFile, FName, FContents}.
 
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
-    _ = util:resolve_global_name(DirUAL, DirUAL),
-    global:send(DirUAL, quit).
+    % _ = util:resolve_global_name(DirUAL, DirUAL),
+    % global:send(DirUAL, quit).
+    {DirUAL, DirUAL} ! quit.
 
 % test() ->
 %     start_dir_service(),

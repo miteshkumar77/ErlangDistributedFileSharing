@@ -11,7 +11,7 @@ file_service_evl(evl, DirUAL) ->
         quit ->
             init:stop(0);
         {saveChunk, ChunkName, ChunkContents} ->
-            % io:fwrite("Received chunk, name: ~s, contents: ~s~n", [ChunkName, ChunkContents]),
+            io:fwrite("Received chunk, name: ~s, contents: ~s~n", [ChunkName, ChunkContents]),
             ok = util:saveFile(server_path(ChunkName), ChunkContents),
             file_service_evl(evl, DirUAL);
         {requestChunk, FName, Index, ClientAddr} ->
@@ -23,9 +23,11 @@ file_service_evl(evl, DirUAL) ->
     end.
 
 file_service_evl(DirUAL) ->
-    yes = global:register_name(node(), self()),
-    _ = util:resolve_global_name(DirUAL, DirUAL),
+    % yes = global:register_name(node(), self()),
+    true = register(node(), self()),
+    % _ = util:resolve_global_name(DirUAL, DirUAL),
     % io:fwrite("Begin file_service_evl~n"),
     ok = filelib:ensure_dir(server_path("drink_ensure.txt")),
-    global:send(DirUAL, {fsAddr, node()}),
+    % global:send(DirUAL, {fsAddr, node()}),
+    {DirUAL, DirUAL} ! {fsAddr, node()},
     file_service_evl(evl, DirUAL).
