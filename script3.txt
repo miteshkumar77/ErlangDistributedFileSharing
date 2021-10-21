@@ -1,0 +1,22 @@
+d ds@localhost
+f ds@localhost fs1@localhost
+f ds@localhost fs2@localhost
+f ds@localhost fs3@localhost
+f ds@localhost fs4@localhost
+f ds@localhost fs5@localhost
+f ds@localhost fs6@localhost
+f ds@localhost fs7@localhost
+sleep 1
+c ds@localhost 'empty.txt'
+c ds@localhost 'a.txt'
+c ds@localhost 'b.txt'
+c ds@localhost 'large.txt'
+c ds@localhost 'bee_short.txt'
+c ds@localhost 'bee_full.txt'
+g ds@localhost 'empty.txt'
+g ds@localhost 'a.txt'
+g ds@localhost 'b.txt'
+g ds@localhost 'large.txt'
+g ds@localhost 'bee_short.txt'
+g ds@localhost 'bee_full.txt'
+q ds@localhost
