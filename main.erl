@@ -15,12 +15,10 @@
 
 % starts a directory service
 start_dir_service() ->
-    % _ = spawn(dirService, dir_service_evl, []).
     dirService:dir_service_evl().
 
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
-    % _ = spawn(fileService, file_service_evl, [DirUAL]).
     fileService:file_service_evl(DirUAL).
 
 
@@ -51,8 +49,6 @@ download_chunks(FName, NumChunks) ->
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
 get(DirUAL, FName) ->
-    % _ = util:resolve_global_name(DirUAL, DirUAL),
-    % global:send(DirUAL, {requestFileInfo, FName, self()}),
     {DirUAL, DirUAL} ! {requestFileInfo, FName, self()},
     receive
         {fileInfo, LocationList} ->
@@ -62,34 +58,13 @@ get(DirUAL, FName) ->
     end.
 
 create(DirUAL, FName) ->
-    % _ = util:resolve_global_name(DirUAL, DirUAL),
     {ok, CWD} = file:get_cwd(),
     Path =
         lists:flatten(
             io_lib:fwrite("~s/input/~s", [CWD, FName])),
     FContents = util:readFile(Path),
-    % global:send(DirUAL, {saveFile, FName, FContents}).
     {DirUAL, DirUAL} ! {saveFile, FName, FContents}.
 
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
-    % _ = util:resolve_global_name(DirUAL, DirUAL),
-    % global:send(DirUAL, quit).
     {DirUAL, DirUAL} ! quit.
-
-% test() ->
-%     start_dir_service(),
-%     start_file_server(node()),
-%     start_file_server(node()),
-%     start_file_server(node()),
-%     start_file_server(node()),
-%     start_file_server(node()),
-%     timer:sleep(1000),
-%     create(node(), "a.txt"),
-%     create(node(), "b.txt"),
-%     create(node(), "bee_short.txt"),
-%     timer:sleep(1000),
-%     get(node(), "bee_short.txt"),
-%     get(node(), "a.txt"),
-%     get(node(), "b.txt"),
-%     quit(node()).

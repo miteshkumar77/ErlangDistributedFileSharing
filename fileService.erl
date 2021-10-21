@@ -23,11 +23,8 @@ file_service_evl(evl, DirUAL) ->
     end.
 
 file_service_evl(DirUAL) ->
-    % yes = global:register_name(node(), self()),
     true = register(node(), self()),
-    % _ = util:resolve_global_name(DirUAL, DirUAL),
     % io:fwrite("Begin file_service_evl~n"),
     ok = filelib:ensure_dir(server_path("drink_ensure.txt")),
-    % global:send(DirUAL, {fsAddr, node()}),
     {DirUAL, DirUAL} ! {fsAddr, node()},
     file_service_evl(evl, DirUAL).
