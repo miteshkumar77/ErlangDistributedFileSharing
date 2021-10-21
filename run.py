@@ -39,7 +39,9 @@ def waitfor(procs):
     iters = 0
     while True:
         for proc in procs:
+            print(proc.stdout.readline())
             proc.poll()
+                
         if all(proc.returncode is not None for proc in procs):
             break
         iters += 1

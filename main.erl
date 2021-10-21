@@ -1,7 +1,7 @@
 -module(main).
 
 % main functions
--export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1]).
+-export([start_file_server/1, start_dir_service/0, get/2, create/2, quit/1, request_chunks/3]).
 
 % can access own ual w/ node()
 % can access own PID w/ self()
@@ -29,16 +29,14 @@ download_path(FName) ->
     lists:flatten(
         io_lib:fwrite("~s/downloads/~s", [CWD, FName])).
 
-request_chunks(_, [], _) ->
+request_chunks(_, [], _, _) ->
     ok;
-request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
-    % _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
-    % global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
-    {ChunkLocation, ChunkLocation} ! {requestChunk, FName, ChunkIdx, self()},
-    request_chunks(FName, RestLocations, ChunkIdx + 1).
+request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx, ForwardAddr) ->
+    {ChunkLocation, ChunkLocation} ! {requestChunk, FName, ChunkIdx, ForwardAddr},
+    request_chunks(FName, RestLocations, ChunkIdx + 1, ForwardAddr).
 
-request_chunks(FName, LocationList) ->
-    request_chunks(FName, LocationList, 1).
+request_chunks(FName, LocationList, ForwardAddr) ->
+    request_chunks(FName, LocationList, 1, ForwardAddr).
 
 download_chunks(_, NumChunks, ChunkList) when NumChunks == length(ChunkList) ->
     ChunkList;
@@ -59,9 +57,9 @@ get(DirUAL, FName) ->
     receive
         {fileInfo, LocationList} ->
             util:print_addrs(LocationList),
-            request_chunks(FName, LocationList)
-    end,
-    download_chunks(FName, length(LocationList)).
+            spawn(main, request_chunks, [FName, LocationList, self()]),
+            download_chunks(FName, length(LocationList))
+    end.
 
 create(DirUAL, FName) ->
     % _ = util:resolve_global_name(DirUAL, DirUAL),
