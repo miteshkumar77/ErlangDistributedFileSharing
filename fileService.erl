@@ -3,8 +3,10 @@
 
 server_path(FName) ->
     {ok, CWD} = file:get_cwd(),
-    Path = lists:flatten(io_lib:fwrite("~s/servers/~w/~s", [CWD, node(), FName])),
+    NodeName = lists:flatten(lists:nth(1, io_lib:fwrite("~w", [node()]))),
+    Path = lists:flatten(io_lib:fwrite("~s/servers/~s/~s", [CWD, lists:nth(1, string:split(NodeName, "@")), FName])),
     Path.
+
 
 file_service_evl(evl, DirUAL) ->
     receive
@@ -21,7 +23,7 @@ file_service_evl(evl, DirUAL) ->
             % io:fwrite("FS: ~w DS: ~w, Got a message.~n", [self(), DirUAL]),
             file_service_evl(evl, DirUAL)
     end.
-
+% main:start_file_server
 file_service_evl(DirUAL) ->
     yes = global:register_name(node(), self()),
     _ = util:resolve_global_name(DirUAL, DirUAL),

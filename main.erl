@@ -13,11 +13,13 @@
 % when starting the Directory Service and File Servers, you will need
 % to register a process name and spawn a process in another node
 
+% d
 % starts a directory service
 start_dir_service() ->
     % _ = spawn(dirService, dir_service_evl, []).
     dirService:dir_service_evl().
 
+% f
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
     % _ = spawn(fileService, file_service_evl, [DirUAL]).
@@ -35,7 +37,7 @@ request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
     _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
     global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
     request_chunks(FName, RestLocations, ChunkIdx + 1).
-
+% get()
 request_chunks(FName, LocationList) ->
     request_chunks(FName, LocationList, 1).
 
@@ -46,21 +48,24 @@ download_chunks(FName, NumChunks, ChunkList) ->
         {chunkData, ChunkIndex, ChunkContents} when ChunkIndex == length(ChunkList) + 1 ->
             download_chunks(FName, NumChunks, lists:append(ChunkList, [ChunkContents]))
     end.
-
+% get()
 download_chunks(FName, NumChunks) ->
     util:saveFile(download_path(FName),
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
+
+% g
 get(DirUAL, FName) ->
     _ = util:resolve_global_name(DirUAL, DirUAL),
     global:send(DirUAL, {requestFileInfo, FName, self()}),
     receive
         {fileInfo, LocationList} ->
-            util:print_addrs(LocationList),
+            % util:print_addrs(LocationList),
             request_chunks(FName, LocationList)
     end,
     download_chunks(FName, length(LocationList)).
 
+% c
 create(DirUAL, FName) ->
     _ = util:resolve_global_name(DirUAL, DirUAL),
     {ok, CWD} = file:get_cwd(),
@@ -70,6 +75,7 @@ create(DirUAL, FName) ->
     FContents = util:readFile(Path),
     global:send(DirUAL, {saveFile, FName, FContents}).
 
+% q
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
     _ = util:resolve_global_name(DirUAL, DirUAL),

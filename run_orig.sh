@@ -19,12 +19,7 @@ do
             erl -noshell -detached -sname ${args[2]} -setcookie foo -eval "main:start_file_server(${args[1]})"
             ;;
         c)  
-            temp=${args[2]}
-            temp="${temp#\'}"
-            temp="${temp%\'}"
-            files+=($temp)
-            echo "main:create(${args[1]}, \"${temp}\")"
-            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:create(${args[1]}, \"${temp}\")"
+            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:create(${args[1]}, ${args[2]})"
             sleep 1
             pkill -f client@localhost
             sleep 1
@@ -34,9 +29,7 @@ do
             temp="${temp#\'}"
             temp="${temp%\'}"
             files+=($temp)
-            cmd="main:get(${args[1]}, \"${temp}\")"
-            echo $cmd
-            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:get(${args[1]}, \"${temp}\")"
+            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:get(${args[1]}, ${args[2]})"
             sleep 1
             pkill -f client@localhost
             sleep 1
