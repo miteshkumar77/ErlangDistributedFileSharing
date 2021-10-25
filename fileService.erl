@@ -3,7 +3,9 @@
 
 server_path(FName) ->
     {ok, CWD} = file:get_cwd(),
-    Path = lists:flatten(io_lib:fwrite("~s/servers/~w/~s", [CWD, node(), FName])),
+    NodeStr = lists:flatten(io_lib:fwrite("~w", [node()])),
+    [NodeFolder | _] = string:split(NodeStr, "@"),
+    Path = lists:flatten(io_lib:fwrite("~s/servers/~s/~s", [CWD, NodeFolder, FName])),
     Path.
 
 file_service_evl(evl, DirUAL) ->

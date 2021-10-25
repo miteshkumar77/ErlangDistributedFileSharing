@@ -16,13 +16,11 @@ def parse_line(line, subprocesses):
             subprocesses.append(subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE))
             time.sleep(1.0)
         elif line[0] == 'g':
-            line[2] = '"' + line[2].strip("'") + '"'
             cmd = ['erl', '-sname', 'client@localhost', '-setcookie', 'foo', '-eval', f'main:get({line[1]}, {line[2]})']
             Proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             time.sleep(1.0)
             Proc.kill()
         elif line[0] == 'c':
-            line[2] = '"' + line[2].strip("'") + '"'
             cmd = ['erl', '-noshell', '-detatched', '-sname', 'client@localhost', '-setcookie', 'foo', '-eval', f'main:create({line[1]}, {line[2]})']
             Proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             time.sleep(1.0)

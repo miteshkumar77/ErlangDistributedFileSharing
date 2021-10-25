@@ -2,11 +2,8 @@
 
 ps aux | grep -e heart -e epmd -e beam | grep -v grep | tr -s ' ' | cut -d ' ' -f 2 | xargs kill -9
 
-rm -rf downloads
-rm -rf servers
-
-mkdir downloads
-mkdir servers
+rm -rf downloads/*
+rm -rf servers/*
 
 
 # Compile code
@@ -28,7 +25,12 @@ do
             erl -noshell -detached -sname ${args[2]} -setcookie foo -eval "main:start_file_server(${args[1]})"
             ;;
         c)  
-            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:create(${args[1]}, ${args[2]})"
+            temp=${args[2]}
+            temp="${temp#\'}"
+            temp="${temp%\'}"
+            files+=($temp)
+            echo "main:create(${args[1]}, \"${temp}\")"
+            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:create(${args[1]}, \"${temp}\")"
             sleep 1
             pkill -f client@localhost
             sleep 1
@@ -38,7 +40,9 @@ do
             temp="${temp#\'}"
             temp="${temp%\'}"
             files+=($temp)
-            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:get(${args[1]}, ${args[2]})"
+            cmd="main:get(${args[1]}, \"${temp}\")"
+            echo $cmd
+            erl -noshell -detached -sname client@localhost -setcookie foo -eval "main:get(${args[1]}, \"${temp}\")"
             sleep 1
             pkill -f client@localhost
             sleep 1

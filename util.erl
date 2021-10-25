@@ -1,12 +1,36 @@
 % Stores functions to be used by students
 -module(util).
 
--export([readFile/1, get_all_lines/1, saveFile/2, strToAtom/1, ualToAddr/1, ualToAtom/1,
+-export([convertFileAtom/1, readFile/1, get_all_lines/1, saveFile/2, strToAtom/1, ualToAddr/1, ualToAtom/1,
          getUAL/0, print_addrs/1, split_string_chunks/2, get_chunk_name/2, map_list_append/3,
          resolve_global_name/2]).
 
 % Function in here can be called in main.erl by doing (for example):
 % util:saveFile(path/to/file.txt, "string")
+
+trimBegin(FileAtom) ->
+    Fst = string:substr(FileAtom, 1, 1),
+    io:fwrite("~s~n", [Fst]),
+    if
+    Fst == "'" ->
+        string:substr(FileAtom, 2);
+    true ->
+        FileAtom
+    end.
+trimEnd(FileAtom) ->
+    Lst = string:substr(FileAtom, length(FileAtom)),
+    io:fwrite("~s~n", [Lst]),
+    if 
+    Lst == "'" ->
+        string:substr(FileAtom, 1, length(FileAtom) - 1);
+    true ->
+        FileAtom
+    end.
+convertFileAtom(FileAtom)->
+    TMP = lists:flatten(io_lib:fwrite("~w", [FileAtom])),
+    io:fwrite("FTOATOM: ~s~n", [TMP]),
+    lists:flatten(io_lib:fwrite("~s", [trimBegin(trimEnd(TMP))])).
+
 
 % saves a String to a file located at Location
 saveFile(Location, String) ->
@@ -14,6 +38,7 @@ saveFile(Location, String) ->
 
 % returns the contents of a file located at FileName
 readFile(FileName) ->
+    io:fwrite("Reading File: ~s~n", [FileName]),
     {ok, Device} = file:open(FileName, [read]),
     try
         get_all_lines(Device)

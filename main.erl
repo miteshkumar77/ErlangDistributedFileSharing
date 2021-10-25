@@ -48,7 +48,8 @@ download_chunks(FName, NumChunks) ->
     util:saveFile(download_path(FName),
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
-get(DirUAL, FName) ->
+get(DirUAL, FileAtom) ->
+    FName = util:convertFileAtom(FileAtom),
     {DirUAL, DirUAL} ! {requestFileInfo, FName, self()},
     receive
         {fileInfo, LocationList} ->
@@ -57,7 +58,8 @@ get(DirUAL, FName) ->
             download_chunks(FName, length(LocationList))
     end.
 
-create(DirUAL, FName) ->
+create(DirUAL, FileAtom) ->
+    FName = util:convertFileAtom(FileAtom),
     {ok, CWD} = file:get_cwd(),
     Path =
         lists:flatten(
