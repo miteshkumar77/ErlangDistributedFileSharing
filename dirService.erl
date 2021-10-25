@@ -4,7 +4,8 @@
 send_chunks([ChunkContents|RestChunks], Fname, Index, FileServers, ChunkMap) ->
     NthServer = lists:nth(((Index - 1) rem length(FileServers)) + 1, FileServers),
     ChunkName = util:get_chunk_name(Fname, Index),
-    global:send(NthServer, {saveChunk, ChunkName, ChunkContents}),                      % http://erlang.org/doc/man/global.html#send-2
+    % io:fwrite("Sending chunk to server {~w, ~w}~n", [NthServer, NthServer]),
+    {NthServer, NthServer} ! {saveChunk, ChunkName, ChunkContents},
     send_chunks(RestChunks, Fname, Index+1, FileServers, util:map_list_append(ChunkMap, Fname, NthServer));
 
 
@@ -39,8 +40,7 @@ dir_service_evl(FileServers, ChunkMap) ->
     end.
 
 dir_service_evl() ->
-    % io:fwrite("Begin dir_service_evl~n"),
-    global:register_name(node(), self()),                   % http://erlang.org/doc/man/global.html#register_name-2
+    true = register(node(), self()),
     dir_service_evl([], #{}).
 
     

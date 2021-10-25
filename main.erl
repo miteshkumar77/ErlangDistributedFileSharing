@@ -29,13 +29,12 @@ download_path(FName) ->
 
 request_chunks(_, [], _, _) ->
     ok;
-request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx) ->
-    _ = util:resolve_global_name(ChunkLocation, ChunkLocation),
-    global:send(ChunkLocation, {requestChunk, FName, ChunkIdx, self()}),
-    request_chunks(FName, RestLocations, ChunkIdx + 1).
-% get()
-request_chunks(FName, LocationList) ->
-    request_chunks(FName, LocationList, 1).
+request_chunks(FName, [ChunkLocation | RestLocations], ChunkIdx, ForwardAddr) ->
+    {ChunkLocation, ChunkLocation} ! {requestChunk, FName, ChunkIdx, ForwardAddr},
+    request_chunks(FName, RestLocations, ChunkIdx + 1, ForwardAddr).
+
+request_chunks(FName, LocationList, ForwardAddr) ->
+    request_chunks(FName, LocationList, 1, ForwardAddr).
 
 download_chunks(_, NumChunks, ChunkList) when NumChunks == length(ChunkList) ->
     ChunkList;
@@ -53,10 +52,10 @@ get(DirUAL, FName) ->
     {DirUAL, DirUAL} ! {requestFileInfo, FName, self()},
     receive
         {fileInfo, LocationList} ->
-            % util:print_addrs(LocationList),
-            request_chunks(FName, LocationList)
-    end,
-    download_chunks(FName, length(LocationList)).
+            util:print_addrs(LocationList),
+            spawn(main, request_chunks, [FName, LocationList, self()]),
+            download_chunks(FName, length(LocationList))
+    end.
 
 create(DirUAL, FName) ->
     {ok, CWD} = file:get_cwd(),
