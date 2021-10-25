@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Compile code
-erlc main.erl util.erl dirService.erl fileService.erl
+erlc main.erl util.erl fileService.erl dirService.erl
 
 # Run my program.
 input=$1
