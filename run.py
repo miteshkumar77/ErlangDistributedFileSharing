@@ -2,10 +2,6 @@ import sys
 import time
 import subprocess
 
-import importlib
-fc = importlib.import_module('reset')
-fc.main()
-
 def parse_line(line, subprocesses):
     print(' '.join(line))
     if line[0] == 'sleep':

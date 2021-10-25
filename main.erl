@@ -13,12 +13,10 @@
 % when starting the Directory Service and File Servers, you will need
 % to register a process name and spawn a process in another node
 
-% d
 % starts a directory service
 start_dir_service() ->
     dirService:dir_service_evl().
 
-% f
 % starts a file server with the UAL of the Directory Service
 start_file_server(DirUAL) ->
     fileService:file_service_evl(DirUAL).
@@ -46,13 +44,11 @@ download_chunks(FName, NumChunks, ChunkList) ->
         {chunkData, ChunkIndex, ChunkContents} when ChunkIndex == length(ChunkList) + 1 ->
             download_chunks(FName, NumChunks, lists:append(ChunkList, [ChunkContents]))
     end.
-% get()
+
 download_chunks(FName, NumChunks) ->
     util:saveFile(download_path(FName),
                   string:join(download_chunks(FName, NumChunks, []), "")).
 
-
-% g
 get(DirUAL, FName) ->
     {DirUAL, DirUAL} ! {requestFileInfo, FName, self()},
     receive
@@ -62,7 +58,6 @@ get(DirUAL, FName) ->
     end,
     download_chunks(FName, length(LocationList)).
 
-% c
 create(DirUAL, FName) ->
     {ok, CWD} = file:get_cwd(),
     Path =
@@ -71,7 +66,6 @@ create(DirUAL, FName) ->
     FContents = util:readFile(Path),
     {DirUAL, DirUAL} ! {saveFile, FName, FContents}.
 
-% q
 % sends shutdown message to the Directory Service (DirUAL)
 quit(DirUAL) ->
     {DirUAL, DirUAL} ! quit.
