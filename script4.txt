@@ -1,0 +1,18 @@
+d ds@localhost
+f ds@localhost fs1@localhost
+f ds@localhost fs2@localhost
+f ds@localhost fs3@localhost
+f ds@localhost fs4@localhost
+f ds@localhost fs5@localhost
+f ds@localhost fs6@localhost
+f ds@localhost fs7@localhost
+sleep 1
+c ds@localhost 'empty.txt'
+g ds@localhost 'empty.txt'
+c ds@localhost '4_64.txt'
+c ds@localhost 'less_64.txt'
+g ds@localhost 'less_64.txt'
+g ds@localhost '4_64.txt'
+c ds@localhost 'more_64.txt'
+g ds@localhost 'more_64.txt'
+q ds@localhost

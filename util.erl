@@ -7,29 +7,8 @@
 
 % Function in here can be called in main.erl by doing (for example):
 % util:saveFile(path/to/file.txt, "string")
-
-trimBegin(FileAtom) ->
-    Fst = string:substr(FileAtom, 1, 1),
-    io:fwrite("~s~n", [Fst]),
-    if
-    Fst == "'" ->
-        string:substr(FileAtom, 2);
-    true ->
-        FileAtom
-    end.
-trimEnd(FileAtom) ->
-    Lst = string:substr(FileAtom, length(FileAtom)),
-    io:fwrite("~s~n", [Lst]),
-    if 
-    Lst == "'" ->
-        string:substr(FileAtom, 1, length(FileAtom) - 1);
-    true ->
-        FileAtom
-    end.
 convertFileAtom(FileAtom)->
-    TMP = lists:flatten(io_lib:fwrite("~w", [FileAtom])),
-    io:fwrite("FTOATOM: ~s~n", [TMP]),
-    lists:flatten(io_lib:fwrite("~s", [trimBegin(trimEnd(TMP))])).
+    atom_to_list(FileAtom).
 
 
 % saves a String to a file located at Location

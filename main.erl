@@ -45,8 +45,9 @@ download_chunks(FName, NumChunks, ChunkList) ->
     end.
 
 download_chunks(FName, NumChunks) ->
-    util:saveFile(download_path(FName),
-                  string:join(download_chunks(FName, NumChunks, []), "")).
+    Dlpath = download_path(FName),
+    ok = filelib:ensure_dir(Dlpath),
+    util:saveFile(Dlpath, string:join(download_chunks(FName, NumChunks, []), "")).
 
 get(DirUAL, FileAtom) ->
     FName = util:convertFileAtom(FileAtom),

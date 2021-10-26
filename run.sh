@@ -5,9 +5,6 @@ ps aux | grep -e heart -e epmd -e beam | grep -v grep | tr -s ' ' | cut -d ' ' -
 rm -rf downloads
 rm -rf servers
 
-mkdir downloads
-mkdir servers
-
 
 # Compile code
 erlc main.erl util.erl fileService.erl dirService.erl
